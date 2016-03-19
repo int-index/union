@@ -3,6 +3,7 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -16,12 +17,17 @@ import Control.Exception
 import Data.Function
 import Data.Functor.Identity
 import Data.Typeable
+import Data.Vinyl.TypeLevel
+import Control.Lens
 
 data Union (f :: u -> *) (as :: [u]) where
-  Union :: Either (Union f as) (f a) -> Union f (a ': as)
+  Union :: !(Either (Union f as) (f a)) -> Union f (a ': as)
 
 unionToEither :: Union f (a ': as) -> Either (Union f as) (f a)
 unionToEither (Union e) = e
+
+_Union :: Iso' (Union f (a ': as)) (Either (Union f as) (f a))
+_Union = iso unionToEither Union
 
 union :: (Union f as -> c) -> (f a -> c) -> Union f (a ': as) -> c
 union onLeft onRight = either onLeft onRight . unionToEither
@@ -29,23 +35,40 @@ union onLeft onRight = either onLeft onRight . unionToEither
 absurdUnion :: Union f '[] -> a
 absurdUnion = \case{}
 
-class LiftUnion a as where
-  liftUnion :: f a -> Union f as
+uprismR :: Prism' (Union f (a ': as)) (f a)
+uprismR = _Union . _Right
 
-instance {-# OVERLAPPING #-} LiftUnion a (a ': as) where
-  liftUnion = Union . Right
+uprismL :: Prism' (Union f (a ': as)) (Union f as)
+uprismL = _Union . _Left
 
-instance LiftUnion a as => LiftUnion a (b ': as) where
-  liftUnion = Union . Left . liftUnion
+class i ~ RIndex a as => UElem (a :: u) (as :: [u]) (i :: Nat) where
+  uprism :: Prism' (Union f as) (f a)
 
-class ReUnion as bs where
-  reUnion :: Union f as -> Union f bs
+instance UElem a (a ': as) 'Z where
+  uprism = uprismR
 
-instance ReUnion '[] bs where
-  reUnion = absurdUnion
+instance
+    ( RIndex a (b ': as) ~ 'S i
+    , UElem a as i
+    ) => UElem a (b ': as) ('S i)
+  where
+    uprism = uprismL . uprism
 
-instance (LiftUnion a bs, ReUnion as bs) => ReUnion (a ': as) bs where
-  reUnion = union reUnion liftUnion
+class is ~ RImage as bs => USubset (as :: [u]) (bs :: [u]) is where
+  usubset :: Prism' (Union f bs) (Union f as)
+
+instance USubset '[] bs '[] where
+  usubset = prism absurdUnion Left
+
+instance
+    ( UElem a bs i
+    , USubset as bs is
+    ) => USubset (a ': as) bs (i ': is) where
+  usubset = prism
+    (union (review usubset) (review uprism))
+    (\ubs -> maybe (Left ubs) Right
+           $ preview (uprism  . re uprismR) ubs
+         <|> preview (usubset . re uprismL) ubs)
 
 instance Show (Union f '[]) where
   showsPrec _ = absurdUnion
@@ -87,11 +110,7 @@ instance
     ) => Exception (Union f (a ': as))
   where
     toException = union toException (toException . runIdentity)
-    fromException sE
-       =  fmap (liftUnion . Identity) matchA
-      <|> fmap (Union . Left) matchU
+    fromException sE = matchR <|> matchL
       where
-        matchA :: Maybe a
-        matchU :: Maybe (Union f as)
-        matchA = fromException sE
-        matchU = fromException sE
+        matchR = review uprismR . Identity <$> fromException sE
+        matchL = review uprismL <$> fromException sE
