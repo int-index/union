@@ -19,7 +19,7 @@ install:
  - stack install --only-dependencies --no-terminal
 
 script:
- - stack build --no-terminal --ghc-options -Werror
+ - stack build --test --bench --no-terminal --ghc-options -Werror
 
 addons:
   apt:
