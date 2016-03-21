@@ -30,12 +30,12 @@ module Data.Union
   ) where
 
 import Control.Applicative
+import Control.DeepSeq
 import Control.Exception
+import Control.Lens
 import Data.Function
-import Data.Functor.Identity
 import Data.Typeable
 import Data.Vinyl.TypeLevel
-import Control.Lens
 
 -- | A union is parameterized by a universe @u@, an interpretation @f@
 -- and a list of labels @as@. The labels of the union are given by
@@ -106,11 +106,23 @@ openUnion :: UElem a as (RIndex a as) => Prism' (OpenUnion as) a
 openUnion = uprism . iso runIdentity Identity
 {-# INLINE openUnion #-}
 
-instance Show (Union f '[]) where
-  showsPrec _ = absurdUnion
-
 unionToEither :: Union f (a ': as) -> Either (Union f as) (f a)
 unionToEither = union Left Right
+
+instance NFData (Union f '[]) where
+  rnf = absurdUnion
+
+instance
+    ( NFData (f a)
+    , NFData (Union f as)
+    ) => NFData (Union f (a ': as))
+  where
+    rnf = \case
+      This a -> rnf a
+      That u -> rnf u
+
+instance Show (Union f '[]) where
+  showsPrec _ = absurdUnion
 
 instance
     ( Show (f a)

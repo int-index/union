@@ -1,10 +1,15 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 module Main (main) where
 
+import Control.DeepSeq
 import Control.Lens
 import Criterion.Main
 import Data.Dynamic
 import Data.Union
+
+instance NFData (Proxy (a :: k)) where
+  rnf Proxy = ()
 
 union1 :: OpenUnion '[(), Proxy 0, Proxy 1]
 union1 = openUnion # ()
@@ -56,8 +61,10 @@ main = do
         whnf (\a -> a ^? _Right . _Right . _Right . _Right
                        . _Right . _Right . _Right . _Right
                        . _Right . _Right . _Right :: Maybe ()) either12
+    , bench "openUnion constructing 1st" $
+        nf (\a -> openUnion # a :: OpenUnion '[()]) ()
     , bench "openUnion constructing 12th" $
-        whnf (\a -> openUnion # a :: OpenUnion12) ()
+        nf (\a -> openUnion # a :: OpenUnion12) ()
     , bench "dyn constructing" $
         whnf toDyn ()
     ]
