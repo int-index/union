@@ -33,7 +33,6 @@ import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
 import Control.Lens
-import Data.Function
 import Data.Typeable
 import Data.Vinyl.TypeLevel
 
@@ -102,12 +101,9 @@ instance
 
 type OpenUnion = Union Identity
 
-openUnion :: UElem a as (RIndex a as) => Prism' (OpenUnion as) a
+openUnion :: forall a as . UElem a as (RIndex a as) => Prism' (OpenUnion as) a
 openUnion = uprism . iso runIdentity Identity
 {-# INLINE openUnion #-}
-
-unionToEither :: Union f (a ': as) -> Either (Union f as) (f a)
-unionToEither = union Left Right
 
 instance NFData (Union f '[]) where
   rnf = absurdUnion
@@ -129,7 +125,7 @@ instance
     , Show (Union f as)
     ) => Show (Union f (a ': as))
   where
-    showsPrec n = showsPrec n . unionToEither
+    showsPrec n = union (showsPrec n) (showsPrec n)
 
 instance Eq (Union f '[]) where
   (==) = absurdUnion
@@ -139,7 +135,9 @@ instance
     , Eq (Union f as)
     ) => Eq (Union f (a ': as))
   where
-    (==) = (==) `on` unionToEither
+    This a1 == This a2 = a1 == a2
+    That u1 == That u2 = u1 == u2
+    _       == _       = False
 
 instance Ord (Union f '[]) where
   compare = absurdUnion
@@ -149,7 +147,10 @@ instance
     , Ord (Union f as)
     ) => Ord (Union f (a ': as))
   where
-    compare = compare `on` unionToEither
+    compare (This a1) (This a2) = compare a1 a2
+    compare (That u1) (That u2) = compare u1 u2
+    compare (This _)  (That _)  = LT
+    compare (That _)  (This _)  = GT
 
 instance f ~ Identity => Exception (Union f '[])
 
