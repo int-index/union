@@ -8,7 +8,7 @@ description:
     corecords or polymorphic variants.
 
     Neither requires a @Typeable@ constraint nor uses unsafe coercions
-    at the cost of a performance hit.
+    at the cost of linear time access (negligible in practice).
 
 license:             BSD3
 license-file:        LICENSE
