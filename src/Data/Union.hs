@@ -33,6 +33,15 @@ import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
 import Control.Lens
+  ( Prism
+  , prism
+  , Prism'
+  , prism'
+  , iso
+  , re
+  , review
+  , preview )
+import Data.Functor.Identity
 import Data.Typeable
 import Data.Vinyl.TypeLevel
 
@@ -93,10 +102,9 @@ instance
     ( UElem a bs i
     , USubset as bs is
     ) => USubset (a ': as) bs (i ': is) where
-  usubset = prism
+  usubset = prism'
     (union (review usubset) (review uprism))
-    (\ubs -> maybe (Left ubs) Right
-           $ preview (uprism  . re _This) ubs
+    (\ubs -> preview (uprism  . re _This) ubs
          <|> preview (usubset . re _That) ubs)
 
 type OpenUnion = Union Identity
@@ -113,9 +121,7 @@ instance
     , NFData (Union f as)
     ) => NFData (Union f (a ': as))
   where
-    rnf = \case
-      This a -> rnf a
-      That u -> rnf u
+    rnf = union rnf rnf
 
 instance Show (Union f '[]) where
   showsPrec _ = absurdUnion
