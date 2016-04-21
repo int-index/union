@@ -32,18 +32,10 @@ module Data.Union
 import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
-import Control.Lens
-  ( Prism
-  , prism
-  , Prism'
-  , prism'
-  , iso
-  , re
-  , review
-  , preview )
 import Data.Functor.Identity
 import Data.Typeable
 import Data.Vinyl.TypeLevel
+import Data.Union.Prism
 
 -- | A union is parameterized by a universe @u@, an interpretation @f@
 -- and a list of labels @as@. The labels of the union are given by
@@ -78,7 +70,16 @@ _That = prism That (union Right (Left . This))
 {-# INLINE _That #-}
 
 class i ~ RIndex a as => UElem (a :: u) (as :: [u]) (i :: Nat) where
+  {-# MINIMAL uprism | ulift, umatch #-}
+
   uprism :: Prism' (Union f as) (f a)
+  uprism = prism' ulift umatch
+
+  ulift :: f a -> Union f as
+  ulift = review uprism
+
+  umatch :: Union f as -> Maybe (f a)
+  umatch = preview uprism
 
 instance UElem a (a ': as) 'Z where
   uprism = _This
@@ -93,19 +94,27 @@ instance
     {-# INLINE uprism #-}
 
 class is ~ RImage as bs => USubset (as :: [u]) (bs :: [u]) is where
+  {-# MINIMAL usubset | urelax, urestrict #-}
+
   usubset :: Prism' (Union f bs) (Union f as)
+  usubset = prism' urelax urestrict
+
+  urelax :: Union f as -> Union f bs
+  urelax = review usubset
+
+  urestrict :: Union f bs -> Maybe (Union f as)
+  urestrict = preview usubset
 
 instance USubset '[] bs '[] where
-  usubset = prism absurdUnion Left
+  urelax = absurdUnion
+  urestrict _ = Nothing
 
 instance
     ( UElem a bs i
     , USubset as bs is
     ) => USubset (a ': as) bs (i ': is) where
-  usubset = prism'
-    (union (review usubset) (review uprism))
-    (\ubs -> preview (uprism  . re _This) ubs
-         <|> preview (usubset . re _That) ubs)
+  urelax = union urelax ulift
+  urestrict ubs = This <$> umatch ubs <|> That <$> urestrict ubs
 
 type OpenUnion = Union Identity
 

@@ -1,7 +1,7 @@
 sudo: false
 
 env:
- - GHCVER=7.10.3 STACK_YAML=stack.yaml COVERAGE="YES"
+ - GHCVER=7.10.3 STACK_YAML=stack.yaml
 
 cache:
   directories:
