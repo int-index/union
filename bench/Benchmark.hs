@@ -2,14 +2,10 @@
 {-# LANGUAGE PolyKinds #-}
 module Main (main) where
 
-import Control.DeepSeq
 import Control.Lens
 import Criterion.Main
 import Data.Dynamic
 import Data.Union
-
-instance NFData (Proxy (a :: k)) where
-  rnf Proxy = ()
 
 union1 :: OpenUnion '[(), Proxy 0, Proxy 1]
 union1 = openUnion # ()

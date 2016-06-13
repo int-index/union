@@ -1,2 +1,2 @@
 packages: ['.']
-resolver: lts-5.1
+resolver: nightly-2016-06-12

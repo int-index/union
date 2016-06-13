@@ -1,5 +1,5 @@
 name:                union
-version:             0.1.1.0
+version:             0.1.1.1
 synopsis:            Extensible type-safe unions
 description:
 
@@ -52,7 +52,7 @@ benchmark bench
   build-depends:       base
                ,       union
                ,       lens
-               ,       deepseq
+               ,       deepseq >=1.4.2
                ,       criterion
   hs-source-dirs:      bench
   default-language:    Haskell2010
