@@ -52,7 +52,7 @@ benchmark bench
   build-depends:       base
                ,       union
                ,       lens
-               ,       deepseq
+               ,       deepseq >=1.4.2
                ,       criterion
   hs-source-dirs:      bench
   default-language:    Haskell2010
