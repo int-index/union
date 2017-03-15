@@ -12,8 +12,8 @@ description:
 
 license:             BSD3
 license-file:        LICENSE
-author:              Index Int
-maintainer:          Index Int <vlad.z.4096@gmail.com>
+author:              Vladislav Zavialov
+maintainer:          Vladislav Zavialov <vlad.z.4096@gmail.com>
 bug-reports:         https://github.com/int-index/union/issues
 category:            Data
 build-type:          Simple
