@@ -14,6 +14,22 @@
 
 Extensible type-safe unions.
 
+>>> let a = openUnion # (5 :: Int) :: OpenUnion '[Bool, Int]
+
+>>> a ^? openUnion @Int
+Just 5
+
+>>> a ^? openUnion @Bool
+Nothing
+
+>>> a ^? openUnion @Char
+<interactive>:7:6: error:
+    • No instance for (UElem Char '[] (RIndex Char '[]))
+        arising from a use of ‘openUnion’
+    • In the second argument of ‘(^?)’, namely ‘openUnion @Char’
+      In the expression: a ^? openUnion @Char
+      In an equation for ‘it’: it = a ^? openUnion @Char
+
 -}
 
 module Data.Union
