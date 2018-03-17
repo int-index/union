@@ -6,6 +6,7 @@ import Control.Lens
 import Criterion.Main
 import Data.Dynamic
 import Data.Union
+import Data.Proxy
 
 union1 :: OpenUnion '[(), Proxy 0, Proxy 1]
 union1 = openUnion # ()

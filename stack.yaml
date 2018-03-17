@@ -1,2 +1,2 @@
-resolver: lts-9.11
+resolver: nightly-2018-03-17
 packages: ['.']
