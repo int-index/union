@@ -38,7 +38,7 @@ library
                        ScopedTypeVariables
                        TypeOperators
   build-depends:       base >=4.8 && <4.12
-               ,       vinyl >=0.5 && <0.9
+               ,       vinyl >=0.5 && <0.10
                ,       profunctors >=5.1 && <5.4
                ,       tagged >=0.8 && <0.9
                ,       deepseq >=1.4 && <1.5
