@@ -9,6 +9,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 {- |
 
@@ -52,6 +53,8 @@ import Data.Functor.Identity
 import Data.Typeable
 import Data.Vinyl.TypeLevel
 import Data.Union.Prism
+import Data.Hashable
+import qualified GHC.Generics as G
 
 -- | A union is parameterized by a universe @u@, an interpretation @f@
 -- and a list of labels @as@. The labels of the union are given by
@@ -197,3 +200,20 @@ instance
       where
         matchR = This . Identity <$> fromException sE
         matchL = That <$> fromException sE
+
+instance G.Generic (Union f '[]) where
+  type Rep (Union f '[]) = G.V1
+  from = absurdUnion
+  to = \case{}
+
+instance G.Generic (Union f (a ': as)) where
+  type Rep (Union f (a ': as)) =
+    G.C1 ('G.MetaCons "This" 'G.PrefixI 'False) (G.Rec0 (f a)) G.:+:
+    G.C1 ('G.MetaCons "That" 'G.PrefixI 'False) (G.Rec0 (Union f as))
+  from = union (G.R1 . G.M1 . G.K1) (G.L1 . G.M1 . G.K1)
+  to = \case
+    G.L1 (G.M1 (G.K1 a)) -> This a
+    G.R1 (G.M1 (G.K1 u)) -> That u
+
+instance Hashable (Union f '[])
+instance (Hashable (f a), Hashable (Union f as)) => Hashable (Union f (a ': as))
