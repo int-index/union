@@ -37,7 +37,7 @@ library
                        RankNTypes
                        ScopedTypeVariables
                        TypeOperators
-  build-depends:       base >=4.8 && <4.13
+  build-depends:       base >=4.9 && <4.13
                ,       vinyl >=0.5 && <0.12
                ,       profunctors >=5.1 && <5.5
                ,       tagged >=0.8 && <0.9
