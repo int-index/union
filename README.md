@@ -1,6 +1,6 @@
 # Union
 
-[![Build Status](https://img.shields.io/travis/int-index/union.svg)](https://travis-ci.org/int-index/union)
+[![Build Status](https://github.com/int-index/union/workflows/CI/badge.svg)](https://github.com/int-index/union/actions)
 [![Hackage](https://img.shields.io/hackage/v/union.svg)](https://hackage.haskell.org/package/union)
 
 Extensible type-safe unions.
