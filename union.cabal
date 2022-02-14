@@ -57,4 +57,4 @@ benchmark bench
                ,       criterion
   hs-source-dirs:      bench
   default-language:    Haskell2010
-  ghc-options:         -Wall -O2 -fno-warn-orphans
+  ghc-options:         -Wall -O2 -Wno-orphans
