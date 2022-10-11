@@ -10,16 +10,19 @@ jobs:
     strategy:
       matrix:
         ghc-version:
-          - "8.2.2"
-          - "8.4.4"
+          # GHC 8.2, 8.4: https://github.com/VinylRecords/Vinyl/pull/168
+          # - "8.2.2" # new vinyl doesn't support
+          # - "8.4.4" # new vinyl broke support
           - "8.6.5"
           - "8.8.4"
-          - "8.10.2"
-          - "9.0.1"
+          - "8.10.7"
+          - "9.0.2"
+          - "9.2.4"
+          - "9.4.2"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-haskell@v1
+    - uses: haskell/actions/setup@v2
       with:
         cabal-version: "3.4"
         ghc-version: ${{ matrix.ghc-version }}
