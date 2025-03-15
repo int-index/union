@@ -1,4 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
 module Data.Union.Prism
   ( Prism
   , prism
