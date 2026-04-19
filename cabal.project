@@ -1,0 +1,2 @@
+packages: union.cabal
+allow-newer: indexed-traversable:*, these:*
