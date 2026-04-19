@@ -66,28 +66,35 @@ union onThat onThis = \case
 absurdUnion :: Union f [] -> a
 absurdUnion = \case{}
 
+-- | Map over the interpretation of a union.
 umap :: (forall a . f a -> g a) -> Union f as -> Union g as
 umap f = \case
   This a -> This (f a)
   That u -> That (umap f u)
 
+-- | A prism for the head label of a union.
 _This :: Prism (Union f (a : as)) (Union f (b : as)) (f a) (f b)
 _This = prism This (union (Left . That) Right)
 {-# INLINE _This #-}
 
+-- | A prism for the tail of labels of a union.
 _That :: Prism (Union f (a : as)) (Union f (a : bs)) (Union f as) (Union f bs)
 _That = prism That (union Right (Left . This))
 {-# INLINE _That #-}
 
+-- | Membership of a label @a@ in a union with labels @as@.
 class i ~ RIndex a as => UElem (a :: u) (as :: List u) (i :: Nat) where
   {-# MINIMAL uprism | ulift, umatch #-}
 
+  -- | A prism for a value at label @a@ in the union.
   uprism :: Prism' (Union f as) (f a)
   uprism = prism' ulift umatch
 
+  -- | Inject a value at label @a@ into the union.
   ulift :: f a -> Union f as
   ulift = review uprism
 
+  -- | Match a value at label @a@ from the union.
   umatch :: Union f as -> Maybe (f a)
   umatch = preview uprism
 
@@ -103,15 +110,19 @@ instance
     uprism = _That . uprism
     {-# INLINE uprism #-}
 
+-- | Subset relation between two lists of union labels.
 class is ~ RImage as bs => USubset (as :: List u) (bs :: List u) is where
   {-# MINIMAL usubset | urelax, urestrict #-}
 
+  -- | A prism for a sub-union within a larger union.
   usubset :: Prism' (Union f bs) (Union f as)
   usubset = prism' urelax urestrict
 
+  -- | Widen a union to a larger set of labels.
   urelax :: Union f as -> Union f bs
   urelax = review usubset
 
+  -- | Narrow a union to a smaller set of labels, failing if the actual label is not in the target set @as@.
   urestrict :: Union f bs -> Maybe (Union f as)
   urestrict = preview usubset
 
@@ -126,8 +137,10 @@ instance
   urelax = union urelax ulift
   urestrict ubs = This <$> umatch ubs <|> That <$> urestrict ubs
 
+-- | A union with the trivial interpretation 'Identity', where each label @a@ carries a value of type @a@.
 type OpenUnion = Union Identity
 
+-- | A prism for a value of type @a@ in an 'OpenUnion'.
 openUnion :: forall a as . UElem a as (RIndex a as) => Prism' (OpenUnion as) a
 openUnion = uprism . iso runIdentity Identity
 {-# INLINE openUnion #-}
